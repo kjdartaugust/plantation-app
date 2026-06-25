@@ -6,7 +6,7 @@ import { Topbar } from "@/components/topbar";
 import { Modal, EmptyState } from "@/components/ui";
 import { Crop, CropStage } from "@/lib/types";
 import { uid, daysBetween, cn } from "@/lib/utils";
-import { Plus, Trash2, Sprout, CalendarClock } from "lucide-react";
+import { Plus, Trash2, Sprout, CalendarClock, Pencil } from "lucide-react";
 
 const STAGES: CropStage[] = [
   "planned",
@@ -40,12 +40,28 @@ function healthTone(score: number) {
 export default function CropsPage() {
   const { data, add, update, remove } = useStore();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...empty, farmId: "" });
+
+  const openAdd = () => {
+    setEditingId(null);
+    setForm({ ...empty, farmId: data.farms[0]?.id ?? "" });
+    setOpen(true);
+  };
+
+  const openEdit = (c: Crop) => {
+    const { id, ...rest } = c;
+    setEditingId(id);
+    setForm(rest);
+    setOpen(true);
+  };
 
   const save = () => {
     if (!form.name || !form.farmId) return;
-    add("crops", { ...form, id: uid("crop") });
+    if (editingId) update("crops", editingId, form);
+    else add("crops", { ...form, id: uid("crop") });
     setForm({ ...empty, farmId: data.farms[0]?.id ?? "" });
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -66,13 +82,7 @@ export default function CropsPage() {
           <p className="text-sm text-muted-foreground">
             {data.crops.length} crop blocks tracked across all stages
           </p>
-          <button
-            className="btn-primary"
-            onClick={() => {
-              setForm({ ...empty, farmId: data.farms[0]?.id ?? "" });
-              setOpen(true);
-            }}
-          >
+          <button className="btn-primary" onClick={openAdd}>
             <Plus className="h-4 w-4" /> Add Crop
           </button>
         </div>
@@ -107,12 +117,20 @@ export default function CropsPage() {
                         </p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => remove("crops", c.id)}
-                      className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => openEdit(c)}
+                        className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-primary"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => remove("crops", c.id)}
+                        className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mt-4">
@@ -150,7 +168,11 @@ export default function CropsPage() {
         )}
       </div>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="Add Crop">
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={editingId ? "Edit Crop" : "Add Crop"}
+      >
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
             <label className="label">Farm</label>
@@ -199,7 +221,9 @@ export default function CropsPage() {
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <button className="btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
-          <button className="btn-primary" onClick={save}>Save Crop</button>
+          <button className="btn-primary" onClick={save}>
+            {editingId ? "Update Crop" : "Save Crop"}
+          </button>
         </div>
       </Modal>
     </>

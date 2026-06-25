@@ -7,7 +7,7 @@ import { SectionCard, Modal, StatCard } from "@/components/ui";
 import { RevenueAreaChart, CategoryPie } from "@/components/charts";
 import { Transaction } from "@/lib/types";
 import { uid, formatCurrency, cn } from "@/lib/utils";
-import { Plus, TrendingUp, TrendingDown, Scale, Trash2 } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Scale, Trash2, Pencil } from "lucide-react";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -20,14 +20,30 @@ const empty: Omit<Transaction, "id"> = {
 };
 
 export default function FinancePage() {
-  const { data, add, remove } = useStore();
+  const { data, add, update, remove } = useStore();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
+
+  const openAdd = () => {
+    setEditingId(null);
+    setForm(empty);
+    setOpen(true);
+  };
+
+  const openEdit = (t: Transaction) => {
+    const { id, ...rest } = t;
+    setEditingId(id);
+    setForm(rest);
+    setOpen(true);
+  };
 
   const save = () => {
     if (!form.category || !form.amount) return;
-    add("transactions", { ...form, id: uid("tx") });
+    if (editingId) update("transactions", editingId, form);
+    else add("transactions", { ...form, id: uid("tx") });
     setForm(empty);
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -76,7 +92,7 @@ export default function FinancePage() {
         <SectionCard
           title="Transactions"
           action={
-            <button className="btn-primary" onClick={() => setOpen(true)}>
+            <button className="btn-primary" onClick={openAdd}>
               <Plus className="h-4 w-4" /> Record
             </button>
           }
@@ -105,9 +121,14 @@ export default function FinancePage() {
                       {formatCurrency(t.amount)}
                     </td>
                     <td className="py-3 text-right">
-                      <button onClick={() => remove("transactions", t.id)} className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <div className="flex justify-end gap-1">
+                        <button onClick={() => openEdit(t)} className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-primary">
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button onClick={() => remove("transactions", t.id)} className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -117,7 +138,11 @@ export default function FinancePage() {
         </SectionCard>
       </div>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="Record Transaction">
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={editingId ? "Edit Transaction" : "Record Transaction"}
+      >
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">Type</label>
@@ -145,7 +170,9 @@ export default function FinancePage() {
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <button className="btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
-          <button className="btn-primary" onClick={save}>Save</button>
+          <button className="btn-primary" onClick={save}>
+            {editingId ? "Update" : "Save"}
+          </button>
         </div>
       </Modal>
     </>

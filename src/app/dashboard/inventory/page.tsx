@@ -6,7 +6,7 @@ import { Topbar } from "@/components/topbar";
 import { SectionCard, Modal, StatCard } from "@/components/ui";
 import { InventoryItem } from "@/lib/types";
 import { uid, formatCurrency, cn } from "@/lib/utils";
-import { Plus, Boxes, AlertTriangle, Coins, Minus, Trash2 } from "lucide-react";
+import { Plus, Boxes, AlertTriangle, Coins, Minus, Trash2, Pencil } from "lucide-react";
 
 const CATEGORIES: InventoryItem["category"][] = [
   "seed",
@@ -30,12 +30,28 @@ const empty: Omit<InventoryItem, "id"> = {
 export default function InventoryPage() {
   const { data, add, update, remove } = useStore();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
+
+  const openAdd = () => {
+    setEditingId(null);
+    setForm(empty);
+    setOpen(true);
+  };
+
+  const openEdit = (item: InventoryItem) => {
+    const { id, ...rest } = item;
+    setEditingId(id);
+    setForm(rest);
+    setOpen(true);
+  };
 
   const save = () => {
     if (!form.name) return;
-    add("inventory", { ...form, id: uid("inv") });
+    if (editingId) update("inventory", editingId, form);
+    else add("inventory", { ...form, id: uid("inv") });
     setForm(empty);
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -80,7 +96,7 @@ export default function InventoryPage() {
         <SectionCard
           title="Stock Register"
           action={
-            <button className="btn-primary" onClick={() => setOpen(true)}>
+            <button className="btn-primary" onClick={openAdd}>
               <Plus className="h-4 w-4" /> Add Item
             </button>
           }
@@ -124,12 +140,20 @@ export default function InventoryPage() {
                       <td className="py-3 pr-4 font-medium">{formatCurrency(i.quantity * i.unitCost)}</td>
                       <td className="py-3 pr-4 text-muted-foreground">{i.supplier}</td>
                       <td className="py-3 text-right">
-                        <button
-                          onClick={() => remove("inventory", i.id)}
-                          className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <div className="flex justify-end gap-1">
+                          <button
+                            onClick={() => openEdit(i)}
+                            className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-primary"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => remove("inventory", i.id)}
+                            className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -140,7 +164,11 @@ export default function InventoryPage() {
         </SectionCard>
       </div>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="Add Inventory Item">
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={editingId ? "Edit Inventory Item" : "Add Inventory Item"}
+      >
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
             <label className="label">Item name</label>
@@ -177,7 +205,9 @@ export default function InventoryPage() {
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <button className="btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
-          <button className="btn-primary" onClick={save}>Save Item</button>
+          <button className="btn-primary" onClick={save}>
+            {editingId ? "Update Item" : "Save Item"}
+          </button>
         </div>
       </Modal>
     </>

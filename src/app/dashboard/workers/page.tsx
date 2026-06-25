@@ -6,7 +6,7 @@ import { Topbar } from "@/components/topbar";
 import { SectionCard, Modal, StatCard, StatusBadge } from "@/components/ui";
 import { Worker } from "@/lib/types";
 import { uid, formatCurrency } from "@/lib/utils";
-import { Plus, Users, Wallet, CalendarCheck, Trash2 } from "lucide-react";
+import { Plus, Users, Wallet, CalendarCheck, Trash2, Pencil } from "lucide-react";
 
 const empty: Omit<Worker, "id"> = {
   name: "",
@@ -20,13 +20,29 @@ const empty: Omit<Worker, "id"> = {
 export default function WorkersPage() {
   const { data, add, update, remove } = useStore();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
   const today = new Date().toISOString().slice(0, 10);
 
+  const openAdd = () => {
+    setEditingId(null);
+    setForm(empty);
+    setOpen(true);
+  };
+
+  const openEdit = (w: Worker) => {
+    const { id, ...rest } = w;
+    setEditingId(id);
+    setForm(rest);
+    setOpen(true);
+  };
+
   const save = () => {
     if (!form.name) return;
-    add("workers", { ...form, id: uid("wk") });
+    if (editingId) update("workers", editingId, form);
+    else add("workers", { ...form, id: uid("wk") });
     setForm(empty);
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -79,7 +95,7 @@ export default function WorkersPage() {
         <SectionCard
           title="Workforce & Attendance"
           action={
-            <button className="btn-primary" onClick={() => setOpen(true)}>
+            <button className="btn-primary" onClick={openAdd}>
               <Plus className="h-4 w-4" /> Add Worker
             </button>
           }
@@ -126,12 +142,20 @@ export default function WorkersPage() {
                         </div>
                       </td>
                       <td className="py-3 text-right">
-                        <button
-                          onClick={() => remove("workers", w.id)}
-                          className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <div className="flex justify-end gap-1">
+                          <button
+                            onClick={() => openEdit(w)}
+                            className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-primary"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => remove("workers", w.id)}
+                            className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -171,7 +195,11 @@ export default function WorkersPage() {
         </SectionCard>
       </div>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="Add Worker">
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={editingId ? "Edit Worker" : "Add Worker"}
+      >
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
             <label className="label">Full name</label>
@@ -203,7 +231,9 @@ export default function WorkersPage() {
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <button className="btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
-          <button className="btn-primary" onClick={save}>Save Worker</button>
+          <button className="btn-primary" onClick={save}>
+            {editingId ? "Update Worker" : "Save Worker"}
+          </button>
         </div>
       </Modal>
     </>

@@ -6,7 +6,7 @@ import { Topbar } from "@/components/topbar";
 import { SectionCard, Modal, EmptyState } from "@/components/ui";
 import { Farm } from "@/lib/types";
 import { uid, formatNumber } from "@/lib/utils";
-import { Plus, MapPin, Trash2, Ruler } from "lucide-react";
+import { Plus, MapPin, Trash2, Ruler, Pencil } from "lucide-react";
 
 const empty: Omit<Farm, "id"> = {
   name: "",
@@ -21,14 +21,30 @@ const empty: Omit<Farm, "id"> = {
 };
 
 export default function FarmsPage() {
-  const { data, add, remove } = useStore();
+  const { data, add, update, remove } = useStore();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
+
+  const openAdd = () => {
+    setEditingId(null);
+    setForm(empty);
+    setOpen(true);
+  };
+
+  const openEdit = (f: Farm) => {
+    const { id, ...rest } = f;
+    setEditingId(id);
+    setForm({ ...rest, notes: rest.notes ?? "" });
+    setOpen(true);
+  };
 
   const save = () => {
     if (!form.name || !form.location) return;
-    add("farms", { ...form, id: uid("farm") });
+    if (editingId) update("farms", editingId, form);
+    else add("farms", { ...form, id: uid("farm") });
     setForm(empty);
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -42,7 +58,7 @@ export default function FarmsPage() {
             {formatNumber(data.farms.reduce((s, f) => s + f.areaHectares, 0))} ha
             under management
           </p>
-          <button className="btn-primary" onClick={() => setOpen(true)}>
+          <button className="btn-primary" onClick={openAdd}>
             <Plus className="h-4 w-4" /> Register Farm
           </button>
         </div>
@@ -72,12 +88,20 @@ export default function FarmsPage() {
                         {f.region}
                       </p>
                     </div>
-                    <button
-                      onClick={() => remove("farms", f.id)}
-                      className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => openEdit(f)}
+                        className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-primary"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => remove("farms", f.id)}
+                        className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                   <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
                     <div>
@@ -105,7 +129,11 @@ export default function FarmsPage() {
         )}
       </div>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="Register Farm">
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={editingId ? "Edit Farm" : "Register Farm"}
+      >
         <div className="grid grid-cols-2 gap-3">
           <Field label="Farm name" className="col-span-2">
             <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
@@ -134,7 +162,9 @@ export default function FarmsPage() {
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <button className="btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
-          <button className="btn-primary" onClick={save}>Save Farm</button>
+          <button className="btn-primary" onClick={save}>
+            {editingId ? "Update Farm" : "Save Farm"}
+          </button>
         </div>
       </Modal>
     </>

@@ -6,7 +6,7 @@ import { Topbar } from "@/components/topbar";
 import { SectionCard, Modal, StatCard, StatusBadge } from "@/components/ui";
 import { SaleRecord } from "@/lib/types";
 import { uid, formatCurrency, formatNumber } from "@/lib/utils";
-import { Plus, Ship, PackageCheck, Banknote, Trash2 } from "lucide-react";
+import { Plus, Ship, PackageCheck, Banknote, Trash2, Pencil } from "lucide-react";
 
 const STATUSES: SaleRecord["status"][] = ["pending", "shipped", "delivered", "paid"];
 
@@ -23,12 +23,28 @@ const empty: Omit<SaleRecord, "id"> = {
 export default function SalesPage() {
   const { data, add, update, remove } = useStore();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
+
+  const openAdd = () => {
+    setEditingId(null);
+    setForm(empty);
+    setOpen(true);
+  };
+
+  const openEdit = (s: SaleRecord) => {
+    const { id, ...rest } = s;
+    setEditingId(id);
+    setForm(rest);
+    setOpen(true);
+  };
 
   const save = () => {
     if (!form.cropName || !form.buyer) return;
-    add("sales", { ...form, id: uid("sale") });
+    if (editingId) update("sales", editingId, form);
+    else add("sales", { ...form, id: uid("sale") });
     setForm(empty);
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -55,7 +71,7 @@ export default function SalesPage() {
         <SectionCard
           title="Sales & Export Records"
           action={
-            <button className="btn-primary" onClick={() => setOpen(true)}>
+            <button className="btn-primary" onClick={openAdd}>
               <Plus className="h-4 w-4" /> New Order
             </button>
           }
@@ -89,9 +105,14 @@ export default function SalesPage() {
                       </button>
                     </td>
                     <td className="py-3 text-right">
-                      <button onClick={() => remove("sales", s.id)} className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <div className="flex justify-end gap-1">
+                        <button onClick={() => openEdit(s)} className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-primary">
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button onClick={() => remove("sales", s.id)} className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -101,7 +122,11 @@ export default function SalesPage() {
         </SectionCard>
       </div>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="New Sales Order">
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={editingId ? "Edit Sales Order" : "New Sales Order"}
+      >
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">Crop / Product</label>
@@ -138,7 +163,9 @@ export default function SalesPage() {
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <button className="btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
-          <button className="btn-primary" onClick={save}>Save Order</button>
+          <button className="btn-primary" onClick={save}>
+            {editingId ? "Update Order" : "Save Order"}
+          </button>
         </div>
       </Modal>
     </>
