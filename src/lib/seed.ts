@@ -14,6 +14,8 @@ export const seedData: PlantationData = {
       longitude: -2.428,
       establishedYear: 2014,
       notes: "Flagship cocoa and oil-palm estate.",
+      photoUrl:
+        "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=1200&q=80",
     },
     {
       id: "farm-2",
@@ -26,6 +28,8 @@ export const seedData: PlantationData = {
       longitude: -1.939,
       establishedYear: 2018,
       notes: "Maize, cassava and vegetable rotation.",
+      photoUrl:
+        "https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=1200&q=80",
     },
     {
       id: "farm-3",
@@ -38,6 +42,8 @@ export const seedData: PlantationData = {
       longitude: 0.987,
       establishedYear: 2021,
       notes: "Irrigated shallots and chilli.",
+      photoUrl:
+        "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=1200&q=80",
     },
   ],
   crops: [

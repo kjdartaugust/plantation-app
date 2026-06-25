@@ -16,8 +16,12 @@ create table if not exists farms (
   longitude double precision,
   established_year int,
   notes text,
+  photo_url text,
   created_at timestamptz not null default now()
 );
+
+-- Safe to re-run on an existing deployment that predates the photo column.
+alter table farms add column if not exists photo_url text;
 
 create table if not exists crops (
   id uuid primary key default gen_random_uuid(),
@@ -98,10 +102,40 @@ create table if not exists yields (
   actual_tons numeric not null default 0
 );
 
--- Storage bucket for farm photos / export documents.
+-- Storage bucket for farm photos / export documents (public read).
 insert into storage.buckets (id, name, public)
-values ('plantation-files', 'plantation-files', false)
-on conflict (id) do nothing;
+values ('plantation-files', 'plantation-files', true)
+on conflict (id) do update set public = true;
+
+-- Storage policies: anyone can read; authenticated users manage only files
+-- stored under a folder named after their own user id (`{auth.uid}/...`).
+drop policy if exists "tf_files_read" on storage.objects;
+create policy "tf_files_read" on storage.objects
+  for select using (bucket_id = 'plantation-files');
+
+drop policy if exists "tf_files_insert" on storage.objects;
+create policy "tf_files_insert" on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'plantation-files'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "tf_files_update" on storage.objects;
+create policy "tf_files_update" on storage.objects
+  for update to authenticated
+  using (
+    bucket_id = 'plantation-files'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "tf_files_delete" on storage.objects;
+create policy "tf_files_delete" on storage.objects
+  for delete to authenticated
+  using (
+    bucket_id = 'plantation-files'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
 
 -- Row Level Security: each user only sees their own data.
 do $$

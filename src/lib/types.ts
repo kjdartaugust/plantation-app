@@ -19,6 +19,7 @@ export type Farm = {
   longitude: number;
   establishedYear: number;
   notes?: string;
+  photoUrl?: string;
 };
 
 export type Crop = {

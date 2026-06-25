@@ -28,6 +28,7 @@ const FIELD_MAP: Record<Collections, Record<string, string>> = {
     longitude: "longitude",
     establishedYear: "established_year",
     notes: "notes",
+    photoUrl: "photo_url",
   },
   crops: {
     id: "id",

@@ -5,6 +5,7 @@ import { useStore } from "@/lib/store";
 import { Topbar } from "@/components/topbar";
 import { SectionCard, Modal, EmptyState } from "@/components/ui";
 import { useConfirm } from "@/components/confirm";
+import { ImageUpload } from "@/components/image-upload";
 import { Farm } from "@/lib/types";
 import { uid, formatNumber } from "@/lib/utils";
 import { Plus, MapPin, Trash2, Ruler, Pencil } from "lucide-react";
@@ -71,16 +72,25 @@ export default function FarmsPage() {
           <div className="grid gap-5 lg:grid-cols-2">
             {data.farms.map((f) => (
               <div key={f.id} className="card card-interactive overflow-hidden">
-                <iframe
-                  title={f.name}
-                  className="h-48 w-full border-0"
-                  loading="lazy"
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${
-                    f.longitude - 0.05
-                  }%2C${f.latitude - 0.05}%2C${f.longitude + 0.05}%2C${
-                    f.latitude + 0.05
-                  }&layer=mapnik&marker=${f.latitude}%2C${f.longitude}`}
-                />
+                {f.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={f.photoUrl}
+                    alt={f.name}
+                    className="h-48 w-full object-cover"
+                  />
+                ) : (
+                  <iframe
+                    title={f.name}
+                    className="h-48 w-full border-0"
+                    loading="lazy"
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${
+                      f.longitude - 0.05
+                    }%2C${f.latitude - 0.05}%2C${f.longitude + 0.05}%2C${
+                      f.latitude + 0.05
+                    }&layer=mapnik&marker=${f.latitude}%2C${f.longitude}`}
+                  />
+                )}
                 <div className="p-5">
                   <div className="flex items-start justify-between">
                     <div>
@@ -146,6 +156,12 @@ export default function FarmsPage() {
         title={editingId ? "Edit Farm" : "Register Farm"}
       >
         <div className="grid grid-cols-2 gap-3">
+          <Field label="Farm photo" className="col-span-2">
+            <ImageUpload
+              value={form.photoUrl}
+              onChange={(url) => setForm({ ...form, photoUrl: url })}
+            />
+          </Field>
           <Field label="Farm name" className="col-span-2">
             <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </Field>
