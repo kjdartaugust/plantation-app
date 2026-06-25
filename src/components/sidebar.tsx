@@ -11,11 +11,11 @@ export function Sidebar() {
   return (
     <aside className="hidden w-64 shrink-0 border-r border-border bg-card/50 lg:flex lg:flex-col">
       <div className="flex h-16 items-center gap-2 border-b border-border px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
           <Leaf className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-sm font-bold leading-none">Verdant</p>
+          <p className="text-base font-bold leading-none tracking-tight">TerraFarm</p>
           <p className="text-[11px] text-muted-foreground">Plantation OS</p>
         </div>
       </div>
@@ -40,7 +40,7 @@ export function Sidebar() {
         })}
       </nav>
       <div className="border-t border-border p-4 text-[11px] text-muted-foreground">
-        © {new Date().getFullYear()} Verdant Agri
+        © {new Date().getFullYear()} TerraFarm
       </div>
     </aside>
   );

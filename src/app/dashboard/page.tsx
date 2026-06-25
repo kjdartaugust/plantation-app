@@ -94,7 +94,7 @@ export default function DashboardPage() {
         {empty && (
           <div className="card flex flex-col items-start gap-3 border-primary/30 bg-primary/8 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="font-semibold">Welcome to Verdant 🌱</p>
+              <p className="font-semibold">Welcome to TerraFarm 🌱</p>
               <p className="text-sm text-muted-foreground">
                 Your workspace is empty. Load a realistic sample plantation to
                 explore, or start adding your own farms.

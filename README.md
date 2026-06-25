@@ -1,4 +1,4 @@
-# 🌱 Verdant — Plantation Management Platform
+# 🌱 TerraFarm — Plantation Management Platform
 
 A premium full-stack agri-business application for running plantations: farm mapping,
 crop lifecycle tracking, labor & payroll, inventory, finance, sales/export records,

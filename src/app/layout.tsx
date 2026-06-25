@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Fraunces } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  axes: ["opsz", "SOFT", "WONK"],
+});
 
 export const metadata: Metadata = {
-  title: "Verdant — Plantation Management",
+  title: "TerraFarm — Modern Plantation Management",
   description:
-    "Premium agri-business platform for farm mapping, crop lifecycle, labor, inventory, finance and yield analytics.",
+    "The premium operating system for plantations: crop lifecycle, labor, inventory, finance, weather and yield analytics — beautifully designed.",
 };
 
 export default function RootLayout({
@@ -18,7 +23,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body
+        className={`${inter.variable} ${fraunces.variable} font-sans antialiased`}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>

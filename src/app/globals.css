@@ -4,36 +4,43 @@
 
 @layer base {
   :root {
-    --background: 140 30% 98%;
-    --foreground: 150 25% 12%;
-    --card: 0 0% 100%;
-    --card-foreground: 150 25% 12%;
-    --muted: 150 16% 94%;
-    --muted-foreground: 150 8% 42%;
-    --primary: 142 64% 30%;
-    --primary-foreground: 140 40% 98%;
-    --accent: 38 92% 50%;
-    --accent-foreground: 30 40% 12%;
-    --border: 150 14% 88%;
-    --input: 150 14% 88%;
-    --ring: 142 64% 30%;
-    --radius: 0.85rem;
+    /* TerraFarm — cream canvas, sage green, warm earth gold */
+    --background: 43 44% 96%;
+    --foreground: 100 22% 11%;
+    --card: 45 50% 99%;
+    --card-foreground: 100 22% 11%;
+    --muted: 42 30% 91%;
+    --muted-foreground: 80 7% 38%;
+    --primary: 96 57% 22%;
+    --primary-foreground: 43 44% 97%;
+    --accent: 43 74% 33%;
+    --accent-foreground: 43 44% 97%;
+    --border: 42 26% 86%;
+    --input: 42 26% 86%;
+    --ring: 96 57% 22%;
+    --radius: 1.1rem;
+
+    --cream: 43 50% 94%;
+    --sage: 96 40% 40%;
   }
 
   .dark {
-    --background: 155 28% 7%;
-    --foreground: 140 20% 92%;
-    --card: 158 24% 10%;
-    --card-foreground: 140 20% 92%;
-    --muted: 158 18% 16%;
-    --muted-foreground: 145 10% 62%;
-    --primary: 142 58% 45%;
-    --primary-foreground: 155 30% 8%;
-    --accent: 38 90% 55%;
-    --accent-foreground: 30 40% 10%;
-    --border: 158 16% 18%;
-    --input: 158 16% 18%;
-    --ring: 142 58% 45%;
+    --background: 100 14% 7%;
+    --foreground: 43 32% 92%;
+    --card: 100 12% 10%;
+    --card-foreground: 43 32% 92%;
+    --muted: 100 9% 16%;
+    --muted-foreground: 60 8% 60%;
+    --primary: 96 46% 55%;
+    --primary-foreground: 100 22% 7%;
+    --accent: 43 70% 56%;
+    --accent-foreground: 100 22% 7%;
+    --border: 100 9% 18%;
+    --input: 100 9% 18%;
+    --ring: 96 46% 55%;
+
+    --cream: 100 12% 12%;
+    --sage: 96 40% 50%;
   }
 
   * {
@@ -44,32 +51,41 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  h1, h2, h3 {
+    @apply font-display;
+    letter-spacing: -0.02em;
+  }
 }
 
 @layer components {
   .card {
-    @apply rounded-lg border border-border bg-card text-card-foreground shadow-sm transition-all duration-200;
+    @apply rounded-[var(--radius)] border border-border bg-card text-card-foreground shadow-sm transition-all duration-200;
   }
   .card-interactive {
-    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg;
-  }
-  .input {
-    @apply w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-ring;
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl;
   }
   .stat-card {
     @apply card card-interactive p-5 animate-fade-in;
   }
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring active:scale-[0.97] disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background active:scale-[0.97] disabled:opacity-50;
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring active:scale-[0.97];
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-border bg-transparent px-5 py-2.5 text-sm font-semibold transition hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring active:scale-[0.97];
+  }
+  .input {
+    @apply w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-ring;
   }
   .label {
     @apply mb-1 block text-xs font-medium text-muted-foreground;
   }
   .badge {
-    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
+  }
+  /* Frosted pill — used by floating navbars */
+  .pill {
+    @apply rounded-full border border-border/70 bg-card/70 backdrop-blur-xl;
   }
 }
 
@@ -82,8 +98,7 @@
   border-radius: 999px;
 }
 
-/* Stagger children entrance: apply .stagger to a container; direct children
-   fade in sequentially. */
+/* Stagger children entrance. */
 .stagger > * {
   animation: fade-in 0.5s ease-out both;
 }
@@ -97,17 +112,28 @@
 .stagger > *:nth-child(8) { animation-delay: 0.46s; }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Respect users who prefer reduced motion. */
+/* Marquee for the partner-logo strip. */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Soft grain/noise-free radial glow helper for hero. */
+.hero-glow {
+  background:
+    radial-gradient(60% 50% at 70% 20%, hsl(var(--accent) / 0.10), transparent 70%),
+    radial-gradient(50% 50% at 20% 80%, hsl(var(--sage) / 0.12), transparent 70%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -117,4 +143,5 @@
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+  .marquee-track { animation: none !important; }
 }

@@ -58,10 +58,10 @@ export default function LoginPage() {
       </div>
       <div className="w-full max-w-sm">
         <Link href="/" className="mb-8 flex items-center justify-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Leaf className="h-6 w-6" />
           </div>
-          <span className="text-xl font-bold">Verdant</span>
+          <span className="text-xl font-bold tracking-tight">TerraFarm</span>
         </Link>
 
         <div className="card p-6">
@@ -137,7 +137,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          {mode === "signin" ? "New to Verdant? " : "Already have an account? "}
+          {mode === "signin" ? "New to TerraFarm? " : "Already have an account? "}
           <button
             onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
             className="font-medium text-primary"

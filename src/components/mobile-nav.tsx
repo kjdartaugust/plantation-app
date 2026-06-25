@@ -33,11 +33,11 @@ export function MobileNav() {
           <aside className="absolute left-0 top-0 flex h-full w-72 flex-col border-r border-border bg-card shadow-xl animate-slide-in-left">
             <div className="flex h-16 items-center justify-between border-b border-border px-5">
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
                   <Leaf className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold leading-none">Verdant</p>
+                  <p className="text-base font-bold leading-none tracking-tight">TerraFarm</p>
                   <p className="text-[11px] text-muted-foreground">Plantation OS</p>
                 </div>
               </div>

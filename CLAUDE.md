@@ -16,7 +16,10 @@ There is no test runner configured. `npm run build` is the primary correctness g
 
 ## Architecture
 
-Next.js 14 **App Router** + TypeScript + Tailwind. Premium agri-business UI ("Verdant") for plantation management. Path alias `@/*` → `src/*`.
+Next.js 14 **App Router** + TypeScript + Tailwind. Premium agri-business UI ("TerraFarm") for plantation management. Path alias `@/*` → `src/*`.
+
+### Design system
+Planta-inspired: cream canvas, sage-green primary, warm earth-gold accent. Color tokens are HSL CSS vars in `globals.css` (`:root`/`.dark`) surfaced via `tailwind.config.ts` — **every dashboard page is re-skinned by editing these vars** since pages use only semantic tokens. Display font is **Fraunces** (`font-display`, applied to h1–h3); body is Inter. Buttons are pill-shaped (`.btn-primary`/`.btn-ghost` → `rounded-full`), cards use `--radius` (1.1rem). Marketing motion lives in `src/components/motion.tsx` (Framer Motion `Reveal`/`RevealGroup`), with `floating-nav.tsx`, `app-mockup.tsx` (hero/section visual + `FloatingBadges`) composing the landing page. Respect `prefers-reduced-motion` (handled globally in CSS + via `useReducedMotion`).
 
 ### Data layer — dual mode
 The app is **demo-first so it runs with zero config**, with Supabase as the optional cloud backend. The same `useStore()` API drives both modes — pages never branch on mode:
