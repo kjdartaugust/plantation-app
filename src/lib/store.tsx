@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -13,11 +14,19 @@ import { getSupabaseClient, isSupabaseConfigured } from "./supabase";
 import { TABLES, fromRow, toRow, EMPTY_DATA, Collections } from "./mappers";
 import { uid } from "./utils";
 
+export type Notice = {
+  id: string;
+  type: "success" | "error" | "info";
+  message: string;
+};
+
 type StoreContextValue = {
   data: PlantationData;
   ready: boolean;
   mode: "demo" | "cloud";
   userEmail: string | null;
+  notices: Notice[];
+  dismissNotice: (id: string) => void;
   add: <K extends Collections>(key: K, item: PlantationData[K][number]) => void;
   update: <K extends Collections>(
     key: K,
@@ -67,6 +76,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<PlantationData>(cloud ? EMPTY_DATA : seedData);
   const [ready, setReady] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [notices, setNotices] = useState<Notice[]>([]);
+
+  const dismissNotice = useCallback(
+    (id: string) => setNotices((n) => n.filter((x) => x.id !== id)),
+    []
+  );
+
+  const pushNotice = useCallback(
+    (type: Notice["type"], message: string) => {
+      const id = newId("notice");
+      setNotices((n) => [...n, { id, type, message }]);
+      setTimeout(() => dismissNotice(id), 4500);
+    },
+    [dismissNotice]
+  );
 
   // Demo mode: hydrate from localStorage.
   useEffect(() => {
@@ -124,11 +148,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const optimisticAdd = (key: Collections, item: unknown) =>
       setData((d) => ({ ...d, [key]: [item, ...(d[key] as unknown[])] }));
 
+    const onError = (error: { message: string } | null) => {
+      if (error) {
+        console.error(error);
+        pushNotice("error", error.message || "Save failed — please retry.");
+      }
+    };
+
     return {
       data,
       ready,
       mode: cloud ? "cloud" : "demo",
       userEmail,
+      notices,
+      dismissNotice,
       add: (key, item) => {
         if (supabase) {
           const row = { ...(item as Record<string, unknown>), id: newId(key) };
@@ -136,10 +169,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           supabase
             .from(TABLES[key])
             .insert(toRow(key, row))
-            .then(({ error }) => error && console.error(error));
+            .then(({ error }) => onError(error));
         } else {
           optimisticAdd(key, item);
         }
+        pushNotice("success", "Saved");
       },
       update: (key, id, patch) => {
         setData((d) => ({
@@ -153,8 +187,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             .from(TABLES[key])
             .update(toRow(key, patch as Record<string, unknown>))
             .eq("id", id)
-            .then(({ error }) => error && console.error(error));
+            .then(({ error }) => onError(error));
         }
+        pushNotice("success", "Updated");
       },
       remove: (key, id) => {
         setData((d) => ({
@@ -166,8 +201,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             .from(TABLES[key])
             .delete()
             .eq("id", id)
-            .then(({ error }) => error && console.error(error));
+            .then(({ error }) => onError(error));
         }
+        pushNotice("info", "Deleted");
       },
       reset: () => {
         if (!supabase) setData(seedData);
@@ -175,8 +211,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       seedSampleData: async () => {
         if (!supabase) {
           setData(seedData);
+          pushNotice("success", "Sample data loaded");
           return;
         }
+        try {
         // Remap demo string-ids to UUIDs, preserving farm references.
         const farmIds = new Map<string, string>();
         const farms = seedData.farms.map((f) => {
@@ -213,18 +251,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         // Parents before children to satisfy foreign keys.
         await insert("farms", farms);
         await insert("workers", workers);
-        await Promise.all([
-          insert("crops", crops),
-          insert("inventory", inventory),
-          insert("transactions", transactions),
-          insert("sales", sales),
-          insert("yields", yields),
-        ]);
-        const d = await fetchAll(supabase);
-        setData(d);
+          await Promise.all([
+            insert("crops", crops),
+            insert("inventory", inventory),
+            insert("transactions", transactions),
+            insert("sales", sales),
+            insert("yields", yields),
+          ]);
+          const d = await fetchAll(supabase);
+          setData(d);
+          pushNotice("success", "Sample data loaded");
+        } catch (e) {
+          console.error(e);
+          pushNotice(
+            "error",
+            "Could not load sample data — is the database schema applied?"
+          );
+        }
       },
     };
-  }, [data, ready, cloud, supabase, userEmail]);
+  }, [data, ready, cloud, supabase, userEmail, notices, dismissNotice, pushNotice]);
 
   return (
     <StoreContext.Provider value={value}>{children}</StoreContext.Provider>

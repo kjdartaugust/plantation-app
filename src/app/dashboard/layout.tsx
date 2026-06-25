@@ -1,4 +1,5 @@
 import { Sidebar } from "@/components/sidebar";
+import { Toaster } from "@/components/toaster";
 
 export default function DashboardLayout({
   children,
@@ -9,6 +10,7 @@ export default function DashboardLayout({
     <div className="flex min-h-screen">
       <Sidebar />
       <main className="flex-1 overflow-x-hidden">{children}</main>
+      <Toaster />
     </div>
   );
 }
