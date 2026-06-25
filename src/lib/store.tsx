@@ -9,7 +9,7 @@ import {
 } from "react";
 import { PlantationData } from "./types";
 import { seedData } from "./seed";
-import { getSupabaseClient } from "./supabase";
+import { getSupabaseClient, isSupabaseConfigured } from "./supabase";
 import { TABLES, fromRow, toRow, EMPTY_DATA, Collections } from "./mappers";
 import { uid } from "./utils";
 
@@ -56,10 +56,13 @@ async function fetchAll(
 }
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
+  // `cloud` is derived from public env vars so it is identical on the server
+  // and the client — avoiding a hydration mismatch. The browser client itself
+  // is only instantiated in the browser (it touches cookies/localStorage).
+  const cloud = isSupabaseConfigured();
   const [supabase] = useState(() =>
-    typeof window !== "undefined" ? getSupabaseClient() : null
+    cloud && typeof window !== "undefined" ? getSupabaseClient() : null
   );
-  const cloud = Boolean(supabase);
 
   const [data, setData] = useState<PlantationData>(cloud ? EMPTY_DATA : seedData);
   const [ready, setReady] = useState(false);
