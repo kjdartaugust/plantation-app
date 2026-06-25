@@ -111,6 +111,8 @@ begin
     'farms','crops','workers','attendance','inventory','transactions','sales','yields'
   ] loop
     execute format('alter table %I enable row level security;', t);
+    -- Drop first so the script is safe to re-run.
+    execute format('drop policy if exists "owner_all_%1$s" on %1$I;', t);
     execute format($f$
       create policy "owner_all_%1$s" on %1$I
       for all using (owner_id = auth.uid())
