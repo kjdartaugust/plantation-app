@@ -29,10 +29,10 @@ npm run dev      # http://localhost:3000
 The app runs immediately on a **built-in demo dataset** (persisted to `localStorage`) —
 no database required.
 
-## Connecting Supabase (optional)
+## Going live with Supabase (multi-user)
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Run `supabase/schema.sql` in the SQL editor (creates tables, RLS policies and a storage bucket).
+2. Run `supabase/schema.sql` in the SQL editor (tables, RLS policies, storage bucket). **Required** — without the tables, sign-up works but data loads fail.
 3. Copy `.env.local.example` to `.env.local` and fill in:
 
 ```
@@ -40,7 +40,13 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
-The topbar badge switches from **Demo data** to **Supabase** when configured.
+Now the app switches to **cloud mode**:
+- `/dashboard` is protected — users sign up / sign in at `/login`.
+- Each account gets its own data (enforced by Row Level Security on `auth.uid()`).
+- New accounts can one-click **Load sample data** from the dashboard.
+- The topbar badge reads **Supabase** and shows the signed-in email + sign-out.
+
+> Email confirmation: by default Supabase emails a confirmation link on sign-up. Disable it under **Authentication → Providers → Email** for instant access during demos.
 
 ## Deploy to Vercel
 

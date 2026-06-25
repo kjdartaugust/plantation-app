@@ -19,12 +19,15 @@ There is no test runner configured. `npm run build` is the primary correctness g
 Next.js 14 **App Router** + TypeScript + Tailwind. Premium agri-business UI ("Verdant") for plantation management. Path alias `@/*` → `src/*`.
 
 ### Data layer — dual mode
-The app is **demo-first so it runs with zero config**, with Supabase as an optional cloud backend:
-- `src/lib/store.tsx` — `StoreProvider` holds **all** entities in React state, seeded from `src/lib/seed.ts`, persisted to `localStorage` (`plantation-app-data-v1`). `useStore()` exposes `data`, `add/update/remove/reset`. Every dashboard page reads and mutates through this hook.
-- `src/lib/supabase.ts` — `getSupabaseClient()` returns `null` unless `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set (and `NEXT_PUBLIC_DEMO_MODE !== "true"`). `isSupabaseConfigured()` drives the "Demo data" vs "Supabase" badge in the topbar.
-- `src/lib/types.ts` — the canonical entity shapes (`Farm`, `Crop`, `Worker`, `AttendanceRecord`, `InventoryItem`, `Transaction`, `SaleRecord`, `YieldRecord`) used by both the store and the SQL schema. **Keep `types.ts`, `seed.ts`, and `supabase/schema.sql` in sync.**
+The app is **demo-first so it runs with zero config**, with Supabase as the optional cloud backend. The same `useStore()` API drives both modes — pages never branch on mode:
+- `src/lib/store.tsx` — `StoreProvider` holds **all** entities in React state. `useStore()` exposes `data`, `mode` (`"demo" | "cloud"`), `userEmail`, `add/update/remove/reset`, and `seedSampleData`. In **demo** mode it seeds from `src/lib/seed.ts` and persists to `localStorage` (`plantation-app-data-v1`). In **cloud** mode it loads the signed-in user's rows from Supabase, write-through on every mutation, and reacts to `onAuthStateChange`.
+- `src/lib/supabase.ts` — `getSupabaseClient()` returns `null` (→ demo) unless `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set (and `NEXT_PUBLIC_DEMO_MODE !== "true"`). `isSupabaseConfigured()` drives the badge + auth UI.
+- `src/lib/mappers.ts` — `FIELD_MAP`/`toRow`/`fromRow` translate camelCase store objects ↔ snake_case Postgres columns (partial-safe for updates). New columns must be added here too.
+- `src/lib/types.ts` — canonical entity shapes used by store, mappers and SQL. **Keep `types.ts`, `seed.ts`, `mappers.ts`, and `supabase/schema.sql` in sync.**
 
-When wiring real Supabase persistence, mirror the store's `add/update/remove` signatures so pages don't change.
+### Auth & routing
+- `src/middleware.ts` — when Supabase is configured, refreshes the session cookie and guards `/dashboard/*` (→ `/login`) / bounces authed users off `/login`. When **not** configured it's a no-op so demo mode stays open. Matcher: `/dashboard/:path*`, `/login`, `/signup`.
+- `src/app/login/page.tsx` — combined sign-in / sign-up (email+password) via the browser client; cloud-mode IDs are UUIDs (`crypto.randomUUID`), and `seedSampleData` remaps demo string-ids to UUIDs preserving farm FKs.
 
 ### UI structure
 - `src/app/page.tsx` — public landing page.

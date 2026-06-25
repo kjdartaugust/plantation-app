@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
 import { Topbar } from "@/components/topbar";
 import { StatCard, SectionCard } from "@/components/ui";
@@ -16,12 +16,29 @@ import {
   Users,
   TrendingUp,
   AlertTriangle,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export default function DashboardPage() {
-  const { data } = useStore();
+  const { data, ready, mode, seedSampleData } = useStore();
+  const [seeding, setSeeding] = useState(false);
+  const empty =
+    ready &&
+    mode === "cloud" &&
+    data.farms.length === 0 &&
+    data.crops.length === 0;
+
+  const loadSample = async () => {
+    setSeeding(true);
+    try {
+      await seedSampleData();
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   const metrics = useMemo(() => {
     const income = data.transactions
@@ -74,6 +91,29 @@ export default function DashboardPage() {
     <>
       <Topbar title="Dashboard" />
       <div className="space-y-6 p-5">
+        {empty && (
+          <div className="card flex flex-col items-start gap-3 border-primary/30 bg-primary/8 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold">Welcome to Verdant 🌱</p>
+              <p className="text-sm text-muted-foreground">
+                Your workspace is empty. Load a realistic sample plantation to
+                explore, or start adding your own farms.
+              </p>
+            </div>
+            <button
+              className="btn-primary shrink-0"
+              onClick={loadSample}
+              disabled={seeding}
+            >
+              {seeding ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              Load sample data
+            </button>
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Net Profit"

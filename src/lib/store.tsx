@@ -9,12 +9,15 @@ import {
 } from "react";
 import { PlantationData } from "./types";
 import { seedData } from "./seed";
-
-type Collections = keyof PlantationData;
+import { getSupabaseClient } from "./supabase";
+import { TABLES, fromRow, toRow, EMPTY_DATA, Collections } from "./mappers";
+import { uid } from "./utils";
 
 type StoreContextValue = {
   data: PlantationData;
   ready: boolean;
+  mode: "demo" | "cloud";
+  userEmail: string | null;
   add: <K extends Collections>(key: K, item: PlantationData[K][number]) => void;
   update: <K extends Collections>(
     key: K,
@@ -23,17 +26,48 @@ type StoreContextValue = {
   ) => void;
   remove: <K extends Collections>(key: K, id: string) => void;
   reset: () => void;
+  seedSampleData: () => Promise<void>;
 };
 
 const STORAGE_KEY = "plantation-app-data-v1";
-
 const StoreContext = createContext<StoreContextValue | null>(null);
 
-export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [data, setData] = useState<PlantationData>(seedData);
-  const [ready, setReady] = useState(false);
+function newId(prefix: string) {
+  if (typeof globalThis.crypto?.randomUUID === "function")
+    return globalThis.crypto.randomUUID();
+  return uid(prefix);
+}
 
+async function fetchAll(
+  supabase: NonNullable<ReturnType<typeof getSupabaseClient>>
+): Promise<PlantationData> {
+  const keys = Object.keys(TABLES) as Collections[];
+  const next: PlantationData = { ...EMPTY_DATA };
+  await Promise.all(
+    keys.map(async (k) => {
+      const { data, error } = await supabase.from(TABLES[k]).select("*");
+      if (error) throw error;
+      (next as Record<string, unknown>)[k] = (data ?? []).map((r) =>
+        fromRow(k, r)
+      );
+    })
+  );
+  return next;
+}
+
+export function StoreProvider({ children }: { children: React.ReactNode }) {
+  const [supabase] = useState(() =>
+    typeof window !== "undefined" ? getSupabaseClient() : null
+  );
+  const cloud = Boolean(supabase);
+
+  const [data, setData] = useState<PlantationData>(cloud ? EMPTY_DATA : seedData);
+  const [ready, setReady] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  // Demo mode: hydrate from localStorage.
   useEffect(() => {
+    if (cloud) return;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) setData(JSON.parse(raw));
@@ -41,39 +75,153 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       /* ignore corrupt storage */
     }
     setReady(true);
-  }, []);
+  }, [cloud]);
 
+  // Demo mode: persist to localStorage.
   useEffect(() => {
-    if (!ready) return;
+    if (cloud || !ready) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {
       /* storage full / disabled */
     }
-  }, [data, ready]);
+  }, [data, ready, cloud]);
 
-  const value = useMemo<StoreContextValue>(
-    () => ({
+  // Cloud mode: load the signed-in user's rows and react to auth changes.
+  useEffect(() => {
+    if (!supabase) return;
+    let active = true;
+
+    const load = async (email: string | null | undefined) => {
+      setUserEmail(email ?? null);
+      if (email) {
+        try {
+          const d = await fetchAll(supabase);
+          if (active) setData(d);
+        } catch (e) {
+          console.error("Failed to load data", e);
+        }
+      } else {
+        setData(EMPTY_DATA);
+      }
+      if (active) setReady(true);
+    };
+
+    supabase.auth.getUser().then(({ data }) => load(data.user?.email));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
+      load(session?.user?.email)
+    );
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  const value = useMemo<StoreContextValue>(() => {
+    const optimisticAdd = (key: Collections, item: unknown) =>
+      setData((d) => ({ ...d, [key]: [item, ...(d[key] as unknown[])] }));
+
+    return {
       data,
       ready,
-      add: (key, item) =>
-        setData((d) => ({ ...d, [key]: [item, ...(d[key] as any[])] })),
-      update: (key, id, patch) =>
+      mode: cloud ? "cloud" : "demo",
+      userEmail,
+      add: (key, item) => {
+        if (supabase) {
+          const row = { ...(item as Record<string, unknown>), id: newId(key) };
+          optimisticAdd(key, row);
+          supabase
+            .from(TABLES[key])
+            .insert(toRow(key, row))
+            .then(({ error }) => error && console.error(error));
+        } else {
+          optimisticAdd(key, item);
+        }
+      },
+      update: (key, id, patch) => {
         setData((d) => ({
           ...d,
-          [key]: (d[key] as any[]).map((it) =>
+          [key]: (d[key] as { id: string }[]).map((it) =>
             it.id === id ? { ...it, ...patch } : it
           ),
-        })),
-      remove: (key, id) =>
+        }));
+        if (supabase) {
+          supabase
+            .from(TABLES[key])
+            .update(toRow(key, patch as Record<string, unknown>))
+            .eq("id", id)
+            .then(({ error }) => error && console.error(error));
+        }
+      },
+      remove: (key, id) => {
         setData((d) => ({
           ...d,
-          [key]: (d[key] as any[]).filter((it) => it.id !== id),
-        })),
-      reset: () => setData(seedData),
-    }),
-    [data, ready]
-  );
+          [key]: (d[key] as { id: string }[]).filter((it) => it.id !== id),
+        }));
+        if (supabase) {
+          supabase
+            .from(TABLES[key])
+            .delete()
+            .eq("id", id)
+            .then(({ error }) => error && console.error(error));
+        }
+      },
+      reset: () => {
+        if (!supabase) setData(seedData);
+      },
+      seedSampleData: async () => {
+        if (!supabase) {
+          setData(seedData);
+          return;
+        }
+        // Remap demo string-ids to UUIDs, preserving farm references.
+        const farmIds = new Map<string, string>();
+        const farms = seedData.farms.map((f) => {
+          const id = newId("farm");
+          farmIds.set(f.id, id);
+          return { ...f, id };
+        });
+        const remapFarm = (fid?: string) =>
+          fid ? farmIds.get(fid) ?? fid : undefined;
+        const crops = seedData.crops.map((c) => ({
+          ...c,
+          id: newId("crop"),
+          farmId: remapFarm(c.farmId)!,
+        }));
+        const transactions = seedData.transactions.map((t) => ({
+          ...t,
+          id: newId("tx"),
+          farmId: remapFarm(t.farmId),
+        }));
+        const yields = seedData.yields.map((y) => ({
+          ...y,
+          id: newId("yld"),
+          farmId: remapFarm(y.farmId)!,
+        }));
+        const workers = seedData.workers.map((w) => ({ ...w, id: newId("wk") }));
+        const inventory = seedData.inventory.map((i) => ({ ...i, id: newId("inv") }));
+        const sales = seedData.sales.map((s) => ({ ...s, id: newId("sale") }));
+
+        const insert = (key: Collections, rows: unknown[]) =>
+          supabase
+            .from(TABLES[key])
+            .insert(rows.map((r) => toRow(key, r as Record<string, unknown>)));
+
+        // Parents before children to satisfy foreign keys.
+        await insert("farms", farms);
+        await insert("workers", workers);
+        await Promise.all([
+          insert("crops", crops),
+          insert("inventory", inventory),
+          insert("transactions", transactions),
+          insert("sales", sales),
+          insert("yields", yields),
+        ]);
+        const d = await fetchAll(supabase);
+        setData(d);
+      },
+    };
+  }, [data, ready, cloud, supabase, userEmail]);
 
   return (
     <StoreContext.Provider value={value}>{children}</StoreContext.Provider>

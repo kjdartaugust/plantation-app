@@ -12,6 +12,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
 const features = [
   { icon: MapPinned, title: "Farm Mapping", desc: "Register estates with geo-coordinates, soil profiles and area tracking." },
@@ -25,6 +26,7 @@ const features = [
 ];
 
 export default function Landing() {
+  const cloud = isSupabaseConfigured();
   return (
     <div className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
@@ -36,8 +38,13 @@ export default function Landing() {
         </div>
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <Link href="/dashboard" className="btn-primary">
-            Open Dashboard <ArrowRight className="h-4 w-4" />
+          {cloud && (
+            <Link href="/login" className="btn-ghost">
+              Sign in
+            </Link>
+          )}
+          <Link href={cloud ? "/login" : "/dashboard"} className="btn-primary">
+            {cloud ? "Get started" : "Open Dashboard"} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </header>
