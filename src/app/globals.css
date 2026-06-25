@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 140 30% 98%;
+    --foreground: 150 25% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 150 25% 12%;
+    --muted: 150 16% 94%;
+    --muted-foreground: 150 8% 42%;
+    --primary: 142 64% 30%;
+    --primary-foreground: 140 40% 98%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 30 40% 12%;
+    --border: 150 14% 88%;
+    --input: 150 14% 88%;
+    --ring: 142 64% 30%;
+    --radius: 0.85rem;
+  }
+
+  .dark {
+    --background: 155 28% 7%;
+    --foreground: 140 20% 92%;
+    --card: 158 24% 10%;
+    --card-foreground: 140 20% 92%;
+    --muted: 158 18% 16%;
+    --muted-foreground: 145 10% 62%;
+    --primary: 142 58% 45%;
+    --primary-foreground: 155 30% 8%;
+    --accent: 38 90% 55%;
+    --accent-foreground: 30 40% 10%;
+    --border: 158 16% 18%;
+    --input: 158 16% 18%;
+    --ring: 142 58% 45%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-lg border border-border bg-card text-card-foreground shadow-sm;
+  }
+  .stat-card {
+    @apply card p-5 animate-fade-in;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition hover:bg-muted;
+  }
+  .input {
+    @apply w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring;
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium text-muted-foreground;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 999px;
+}
