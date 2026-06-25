@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { Topbar } from "@/components/topbar";
 import { SectionCard, Modal, EmptyState } from "@/components/ui";
+import { useConfirm } from "@/components/confirm";
 import { Farm } from "@/lib/types";
 import { uid, formatNumber } from "@/lib/utils";
 import { Plus, MapPin, Trash2, Ruler, Pencil } from "lucide-react";
@@ -22,6 +23,7 @@ const empty: Omit<Farm, "id"> = {
 
 export default function FarmsPage() {
   const { data, add, update, remove } = useStore();
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
@@ -96,7 +98,16 @@ export default function FarmsPage() {
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => remove("farms", f.id)}
+                        onClick={async () => {
+                          if (
+                            await confirm({
+                              title: `Delete ${f.name}?`,
+                              message:
+                                "This removes the farm and cannot be undone. Crops linked to it may be affected.",
+                            })
+                          )
+                            remove("farms", f.id);
+                        }}
                         className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
                       >
                         <Trash2 className="h-4 w-4" />

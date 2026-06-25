@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
 import { Topbar } from "@/components/topbar";
 import { SectionCard, Modal, StatCard, StatusBadge } from "@/components/ui";
+import { useConfirm } from "@/components/confirm";
 import { Worker } from "@/lib/types";
 import { uid, formatCurrency } from "@/lib/utils";
 import { Plus, Users, Wallet, CalendarCheck, Trash2, Pencil } from "lucide-react";
@@ -19,6 +20,7 @@ const empty: Omit<Worker, "id"> = {
 
 export default function WorkersPage() {
   const { data, add, update, remove } = useStore();
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
@@ -150,7 +152,16 @@ export default function WorkersPage() {
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => remove("workers", w.id)}
+                            onClick={async () => {
+                              if (
+                                await confirm({
+                                  title: `Remove ${w.name}?`,
+                                  message:
+                                    "This worker and their attendance records will be permanently removed.",
+                                })
+                              )
+                                remove("workers", w.id);
+                            }}
                             className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
                           >
                             <Trash2 className="h-4 w-4" />

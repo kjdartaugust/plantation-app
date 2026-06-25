@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { Topbar } from "@/components/topbar";
 import { Modal, EmptyState } from "@/components/ui";
+import { useConfirm } from "@/components/confirm";
 import { Crop, CropStage } from "@/lib/types";
 import { uid, daysBetween, cn } from "@/lib/utils";
 import { Plus, Trash2, Sprout, CalendarClock, Pencil } from "lucide-react";
@@ -39,6 +40,7 @@ function healthTone(score: number) {
 
 export default function CropsPage() {
   const { data, add, update, remove } = useStore();
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...empty, farmId: "" });
@@ -125,7 +127,16 @@ export default function CropsPage() {
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => remove("crops", c.id)}
+                        onClick={async () => {
+                          if (
+                            await confirm({
+                              title: `Delete ${c.name}?`,
+                              message:
+                                "This crop block and its lifecycle data will be permanently removed.",
+                            })
+                          )
+                            remove("crops", c.id);
+                        }}
                         className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
                       >
                         <Trash2 className="h-4 w-4" />

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { Topbar } from "@/components/topbar";
 import { SectionCard, Modal, StatCard, StatusBadge } from "@/components/ui";
+import { useConfirm } from "@/components/confirm";
 import { SaleRecord } from "@/lib/types";
 import { uid, formatCurrency, formatNumber } from "@/lib/utils";
 import { Plus, Ship, PackageCheck, Banknote, Trash2, Pencil } from "lucide-react";
@@ -22,6 +23,7 @@ const empty: Omit<SaleRecord, "id"> = {
 
 export default function SalesPage() {
   const { data, add, update, remove } = useStore();
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
@@ -109,7 +111,18 @@ export default function SalesPage() {
                         <button onClick={() => openEdit(s)} className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-primary">
                           <Pencil className="h-4 w-4" />
                         </button>
-                        <button onClick={() => remove("sales", s.id)} className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500">
+                        <button
+                          onClick={async () => {
+                            if (
+                              await confirm({
+                                title: "Delete this order?",
+                                message: `The ${s.cropName} order for ${s.buyer} will be permanently removed.`,
+                              })
+                            )
+                              remove("sales", s.id);
+                          }}
+                          className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>

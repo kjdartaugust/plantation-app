@@ -5,6 +5,7 @@ import { useStore } from "@/lib/store";
 import { Topbar } from "@/components/topbar";
 import { SectionCard, Modal, StatCard } from "@/components/ui";
 import { RevenueAreaChart, CategoryPie } from "@/components/charts";
+import { useConfirm } from "@/components/confirm";
 import { Transaction } from "@/lib/types";
 import { uid, formatCurrency, cn } from "@/lib/utils";
 import { Plus, TrendingUp, TrendingDown, Scale, Trash2, Pencil } from "lucide-react";
@@ -21,6 +22,7 @@ const empty: Omit<Transaction, "id"> = {
 
 export default function FinancePage() {
   const { data, add, update, remove } = useStore();
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
@@ -125,7 +127,18 @@ export default function FinancePage() {
                         <button onClick={() => openEdit(t)} className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-primary">
                           <Pencil className="h-4 w-4" />
                         </button>
-                        <button onClick={() => remove("transactions", t.id)} className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500">
+                        <button
+                          onClick={async () => {
+                            if (
+                              await confirm({
+                                title: "Delete this transaction?",
+                                message: `${t.description || t.category} will be permanently removed from your records.`,
+                              })
+                            )
+                              remove("transactions", t.id);
+                          }}
+                          className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>

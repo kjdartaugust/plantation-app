@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { Topbar } from "@/components/topbar";
 import { SectionCard, Modal, StatCard } from "@/components/ui";
+import { useConfirm } from "@/components/confirm";
 import { InventoryItem } from "@/lib/types";
 import { uid, formatCurrency, cn } from "@/lib/utils";
 import { Plus, Boxes, AlertTriangle, Coins, Minus, Trash2, Pencil } from "lucide-react";
@@ -29,6 +30,7 @@ const empty: Omit<InventoryItem, "id"> = {
 
 export default function InventoryPage() {
   const { data, add, update, remove } = useStore();
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
@@ -148,7 +150,16 @@ export default function InventoryPage() {
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => remove("inventory", i.id)}
+                            onClick={async () => {
+                              if (
+                                await confirm({
+                                  title: `Delete ${i.name}?`,
+                                  message:
+                                    "This inventory item will be permanently removed from your stock register.",
+                                })
+                              )
+                                remove("inventory", i.id);
+                            }}
                             className="btn-ghost h-8 w-8 px-0 text-muted-foreground hover:text-red-500"
                           >
                             <Trash2 className="h-4 w-4" />
