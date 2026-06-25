@@ -2,31 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Sprout,
-  MapPinned,
-  Users,
-  Boxes,
-  Wallet,
-  Ship,
-  CloudSun,
-  BarChart3,
-  Leaf,
-} from "lucide-react";
+import { Leaf } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const nav = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/farms", label: "Farms & Mapping", icon: MapPinned },
-  { href: "/dashboard/crops", label: "Crop Lifecycle", icon: Sprout },
-  { href: "/dashboard/workers", label: "Labor & Payroll", icon: Users },
-  { href: "/dashboard/inventory", label: "Inventory", icon: Boxes },
-  { href: "/dashboard/finance", label: "Finance", icon: Wallet },
-  { href: "/dashboard/sales", label: "Sales & Export", icon: Ship },
-  { href: "/dashboard/weather", label: "Weather", icon: CloudSun },
-  { href: "/dashboard/analytics", label: "Yield Analytics", icon: BarChart3 },
-];
+import { navItems, isActive } from "./nav-items";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -42,11 +20,8 @@ export function Sidebar() {
         </div>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-        {nav.map(({ href, label, icon: Icon }) => {
-          const active =
-            href === "/dashboard"
-              ? pathname === href
-              : pathname.startsWith(href);
+        {navItems.map(({ href, label, icon: Icon }) => {
+          const active = isActive(pathname, href);
           return (
             <Link
               key={href}
