@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
 import { Topbar } from "@/components/topbar";
-import { SectionCard, Modal, StatCard } from "@/components/ui";
+import { SectionCard, Modal, StatCard, SearchInput } from "@/components/ui";
 import { RevenueAreaChart, CategoryPie } from "@/components/charts";
 import { useConfirm } from "@/components/confirm";
 import { Transaction } from "@/lib/types";
@@ -26,6 +26,7 @@ export default function FinancePage() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
+  const [query, setQuery] = useState("");
 
   const openAdd = () => {
     setEditingId(null);
@@ -71,6 +72,12 @@ export default function FinancePage() {
   }, [data]);
 
   const sorted = [...data.transactions].sort((a, b) => b.date.localeCompare(a.date));
+  const q = query.trim().toLowerCase();
+  const visible = sorted.filter(
+    (t) =>
+      !q ||
+      [t.description, t.category, t.type].some((v) => v.toLowerCase().includes(q))
+  );
 
   return (
     <>
@@ -94,9 +101,17 @@ export default function FinancePage() {
         <SectionCard
           title="Transactions"
           action={
-            <button className="btn-primary" onClick={openAdd}>
-              <Plus className="h-4 w-4" /> Record
-            </button>
+            <div className="flex items-center gap-2">
+              <SearchInput
+                value={query}
+                onChange={setQuery}
+                placeholder="Search transactions…"
+                className="hidden w-48 sm:block"
+              />
+              <button className="btn-primary" onClick={openAdd}>
+                <Plus className="h-4 w-4" /> Record
+              </button>
+            </div>
           }
         >
           <div className="overflow-x-auto">
@@ -111,7 +126,14 @@ export default function FinancePage() {
                 </tr>
               </thead>
               <tbody>
-                {sorted.map((t) => (
+                {visible.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-muted-foreground">
+                      No transactions match “{query}”.
+                    </td>
+                  </tr>
+                )}
+                {visible.map((t) => (
                   <tr key={t.id} className="border-b border-border/60">
                     <td className="py-3 pr-4 text-muted-foreground">{t.date}</td>
                     <td className="py-3 pr-4 font-medium">{t.description || t.category}</td>

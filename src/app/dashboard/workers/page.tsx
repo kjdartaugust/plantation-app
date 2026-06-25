@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
 import { Topbar } from "@/components/topbar";
-import { SectionCard, Modal, StatCard, StatusBadge } from "@/components/ui";
+import { SectionCard, Modal, StatCard, StatusBadge, SearchInput } from "@/components/ui";
 import { useConfirm } from "@/components/confirm";
 import { Worker } from "@/lib/types";
 import { uid, formatCurrency } from "@/lib/utils";
@@ -24,7 +24,17 @@ export default function WorkersPage() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
+  const [query, setQuery] = useState("");
   const today = new Date().toISOString().slice(0, 10);
+
+  const q = query.trim().toLowerCase();
+  const filteredWorkers = data.workers.filter(
+    (w) =>
+      !q ||
+      [w.name, w.role, w.phone, w.status].some((v) =>
+        v.toLowerCase().includes(q)
+      )
+  );
 
   const openAdd = () => {
     setEditingId(null);
@@ -97,9 +107,17 @@ export default function WorkersPage() {
         <SectionCard
           title="Workforce & Attendance"
           action={
-            <button className="btn-primary" onClick={openAdd}>
-              <Plus className="h-4 w-4" /> Add Worker
-            </button>
+            <div className="flex items-center gap-2">
+              <SearchInput
+                value={query}
+                onChange={setQuery}
+                placeholder="Search workers…"
+                className="hidden w-48 sm:block"
+              />
+              <button className="btn-primary" onClick={openAdd}>
+                <Plus className="h-4 w-4" /> Add Worker
+              </button>
+            </div>
           }
         >
           <div className="overflow-x-auto">
@@ -115,7 +133,14 @@ export default function WorkersPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.workers.map((w) => {
+                {filteredWorkers.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                      No workers match “{query}”.
+                    </td>
+                  </tr>
+                )}
+                {filteredWorkers.map((w) => {
                   const att = attendanceToday(w.id);
                   return (
                     <tr key={w.id} className="border-b border-border/60">

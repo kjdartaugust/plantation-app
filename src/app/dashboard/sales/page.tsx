@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { Topbar } from "@/components/topbar";
-import { SectionCard, Modal, StatCard, StatusBadge } from "@/components/ui";
+import { SectionCard, Modal, StatCard, StatusBadge, SearchInput } from "@/components/ui";
 import { useConfirm } from "@/components/confirm";
 import { SaleRecord } from "@/lib/types";
 import { uid, formatCurrency, formatNumber } from "@/lib/utils";
@@ -27,6 +27,16 @@ export default function SalesPage() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
+  const [query, setQuery] = useState("");
+
+  const q = query.trim().toLowerCase();
+  const filteredSales = data.sales.filter(
+    (s) =>
+      !q ||
+      [s.cropName, s.buyer, s.destination, s.status].some((v) =>
+        v.toLowerCase().includes(q)
+      )
+  );
 
   const openAdd = () => {
     setEditingId(null);
@@ -73,9 +83,17 @@ export default function SalesPage() {
         <SectionCard
           title="Sales & Export Records"
           action={
-            <button className="btn-primary" onClick={openAdd}>
-              <Plus className="h-4 w-4" /> New Order
-            </button>
+            <div className="flex items-center gap-2">
+              <SearchInput
+                value={query}
+                onChange={setQuery}
+                placeholder="Search orders…"
+                className="hidden w-48 sm:block"
+              />
+              <button className="btn-primary" onClick={openAdd}>
+                <Plus className="h-4 w-4" /> New Order
+              </button>
+            </div>
           }
         >
           <div className="overflow-x-auto">
@@ -93,7 +111,14 @@ export default function SalesPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.sales.map((s) => (
+                {filteredSales.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="py-8 text-center text-muted-foreground">
+                      No orders match “{query}”.
+                    </td>
+                  </tr>
+                )}
+                {filteredSales.map((s) => (
                   <tr key={s.id} className="border-b border-border/60">
                     <td className="py-3 pr-4 text-muted-foreground">{s.date}</td>
                     <td className="py-3 pr-4 font-medium">{s.cropName}</td>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { Topbar } from "@/components/topbar";
-import { SectionCard, Modal, StatCard } from "@/components/ui";
+import { SectionCard, Modal, StatCard, SearchInput } from "@/components/ui";
 import { useConfirm } from "@/components/confirm";
 import { InventoryItem } from "@/lib/types";
 import { uid, formatCurrency, cn } from "@/lib/utils";
@@ -34,6 +34,14 @@ export default function InventoryPage() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
+  const [query, setQuery] = useState("");
+
+  const q = query.trim().toLowerCase();
+  const filteredInventory = data.inventory.filter(
+    (i) =>
+      !q ||
+      [i.name, i.category, i.supplier].some((v) => v.toLowerCase().includes(q))
+  );
 
   const openAdd = () => {
     setEditingId(null);
@@ -98,9 +106,17 @@ export default function InventoryPage() {
         <SectionCard
           title="Stock Register"
           action={
-            <button className="btn-primary" onClick={openAdd}>
-              <Plus className="h-4 w-4" /> Add Item
-            </button>
+            <div className="flex items-center gap-2">
+              <SearchInput
+                value={query}
+                onChange={setQuery}
+                placeholder="Search stock…"
+                className="hidden w-48 sm:block"
+              />
+              <button className="btn-primary" onClick={openAdd}>
+                <Plus className="h-4 w-4" /> Add Item
+              </button>
+            </div>
           }
         >
           <div className="overflow-x-auto">
@@ -117,7 +133,14 @@ export default function InventoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.inventory.map((i) => {
+                {filteredInventory.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                      No items match “{query}”.
+                    </td>
+                  </tr>
+                )}
+                {filteredInventory.map((i) => {
                   const low = i.quantity <= i.reorderLevel;
                   return (
                     <tr key={i.id} className="border-b border-border/60">
