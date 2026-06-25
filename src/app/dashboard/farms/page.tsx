@@ -68,7 +68,7 @@ export default function FarmsPage() {
         ) : (
           <div className="grid gap-5 lg:grid-cols-2">
             {data.farms.map((f) => (
-              <div key={f.id} className="card overflow-hidden">
+              <div key={f.id} className="card card-interactive overflow-hidden">
                 <iframe
                   title={f.name}
                   className="h-48 w-full border-0"

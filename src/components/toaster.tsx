@@ -28,7 +28,7 @@ export function Toaster() {
           <div
             key={n.id}
             className={cn(
-              "pointer-events-auto flex items-start gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm shadow-lg animate-fade-in",
+              "pointer-events-auto flex items-start gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm shadow-lg animate-slide-in-right",
               TONE[n.type]
             )}
           >

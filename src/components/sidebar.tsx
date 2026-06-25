@@ -27,10 +27,10 @@ export function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition",
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200",
                 active
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:translate-x-1 hover:bg-muted hover:text-foreground"
               )}
             >
               <Icon className="h-4 w-4" />

@@ -53,15 +53,15 @@ export default function Landing() {
         <span className="badge bg-primary/12 text-primary">
           🌱 Agri-business intelligence
         </span>
-        <h1 className="mx-auto mt-5 max-w-3xl text-4xl font-extrabold tracking-tight sm:text-6xl">
+        <h1 className="mx-auto mt-5 max-w-3xl animate-fade-in-up text-4xl font-extrabold tracking-tight sm:text-6xl">
           Run your plantation like a
           <span className="text-primary"> modern enterprise</span>
         </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
+        <p className="mx-auto mt-5 max-w-2xl animate-fade-in-up text-lg text-muted-foreground [animation-delay:0.1s]">
           Verdant unifies mapping, crop lifecycle, labor, inventory, finance,
           weather and yield analytics into one premium control center.
         </p>
-        <div className="mt-8 flex items-center justify-center gap-3">
+        <div className="mt-8 flex animate-fade-in-up items-center justify-center gap-3 [animation-delay:0.2s]">
           <Link href="/dashboard" className="btn-primary px-6 py-3 text-base">
             Launch the platform <ArrowRight className="h-5 w-5" />
           </Link>
@@ -73,10 +73,10 @@ export default function Landing() {
 
       <section
         id="features"
-        className="mx-auto grid max-w-6xl gap-4 px-6 pb-24 sm:grid-cols-2 lg:grid-cols-4"
+        className="stagger mx-auto grid max-w-6xl gap-4 px-6 pb-24 sm:grid-cols-2 lg:grid-cols-4"
       >
         {features.map(({ icon: Icon, title, desc }) => (
-          <div key={title} className="card p-5 transition hover:shadow-md">
+          <div key={title} className="card card-interactive p-5">
             <div className="mb-3 inline-flex rounded-lg bg-primary/12 p-2.5 text-primary">
               <Icon className="h-5 w-5" />
             </div>

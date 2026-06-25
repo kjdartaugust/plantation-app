@@ -99,7 +99,7 @@ export default function CropsPage() {
                 c.expectedHarvestDate
               );
               return (
-                <div key={c.id} className="card p-5">
+                <div key={c.id} className="card card-interactive p-5">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div className="rounded-lg bg-primary/12 p-2 text-primary">

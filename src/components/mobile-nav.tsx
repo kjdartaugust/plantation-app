@@ -30,7 +30,7 @@ export function MobileNav() {
             className="absolute inset-0 bg-black/50 animate-fade-in"
             onClick={() => setOpen(false)}
           />
-          <aside className="absolute left-0 top-0 flex h-full w-72 flex-col border-r border-border bg-card shadow-xl">
+          <aside className="absolute left-0 top-0 flex h-full w-72 flex-col border-r border-border bg-card shadow-xl animate-slide-in-left">
             <div className="flex h-16 items-center justify-between border-b border-border px-5">
               <div className="flex items-center gap-2">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
